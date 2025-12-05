@@ -10,16 +10,13 @@ import android.view.ViewGroup
 import android.widget.RelativeLayout
 import androidx.fragment.app.Fragment
 import org.silvermoon.osm_kotlin.R
+import org.silvermoon.osm_kotlin.databinding.FragmentHomeBinding
 import org.silvermoon.osm_kotlin.listeners.IMapInteractionListener
 import org.silvermoon.osm_kotlin.location.LocationListenerHelper
 import org.silvermoon.osm_kotlin.mapunits.MapMarker
 import org.silvermoon.osm_kotlin.mapunits.OsmLocationOverlay
 import org.silvermoon.osm_kotlin.mapunits.OsmMapView
 import org.silvermoon.osm_kotlin.mapunits.OsmMapView.OsmMapViewBuilder
-import org.silvermoon.osm_kotlin.model.OSMModel
-import org.silvermoon.osm_kotlin.model.OsmDatabaseHelper
-import java.io.File
-
 
 class HomeFragment : Fragment(), IMapInteractionListener,
     LocationListenerHelper.IMyLocationListener {
@@ -27,42 +24,43 @@ class HomeFragment : Fragment(), IMapInteractionListener,
     private var mLocationListener: LocationListenerHelper? = null
     private var mOsmMapView: OsmMapView? = null
     private var mOsmLocationOverlay: OsmLocationOverlay? = null
-    private var mapLayout: ViewGroup? = null
+    
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-
-        val root = inflater.inflate(R.layout.fragment_home, container, false)
-        // val textView: TextView = root.findViewById(R.id.text_home)
-        mapLayout = root.findViewById(R.id.mapLayout) as ViewGroup
-
-        return root
+    ): View {
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mLocationListener = LocationListenerHelper(requireContext());
+        mLocationListener = LocationListenerHelper(requireContext())
 
-        initOsmDatabase();
-
-        initMap();
+        initMap()
     }
 
     override fun onResume() {
         super.onResume()
-        mLocationListener!!.startListeningLocation(this)
+        mLocationListener?.startListeningLocation(this)
     }
 
     override fun onPause() {
         super.onPause()
-        mLocationListener!!.stopListeningLocation()
+        mLocationListener?.stopListeningLocation()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onDestroy() {
-        mOsmMapView!!.clear()
+        mOsmMapView?.clear()
         super.onDestroy()
     }
 
@@ -78,22 +76,12 @@ class HomeFragment : Fragment(), IMapInteractionListener,
         mOsmMapView!!.addOverlay(mOsmLocationOverlay!!)
 
         val layoutParams = RelativeLayout.LayoutParams(
-            ViewGroup.LayoutParams.FILL_PARENT,
-            ViewGroup.LayoutParams.FILL_PARENT
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
         )
-        mapLayout!!.addView(mOsmMapView, layoutParams)
+        binding.mapLayout.addView(mOsmMapView, layoutParams)
         mOsmMapView!!.setCenter(37.7793, -122.4192)
         mOsmMapView!!.setZoom(12)
-    }
-
-    private fun initOsmDatabase() {
-        val destFile = File(requireActivity().filesDir, "osm_db.sqlite")
-        val osmDbHelper = OsmDatabaseHelper(requireContext())
-        osmDbHelper.databaseFile = destFile
-        val success = osmDbHelper.openOrCreateDatabase(requireContext(), destFile)
-        if (success) {
-            OSMModel.mDbHelper = osmDbHelper
-        }
     }
 
     override fun onMapTouchEvent(event: MotionEvent?): Boolean {

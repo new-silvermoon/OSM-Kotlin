@@ -90,9 +90,9 @@ class TilesProvider(
 
     init {
         mInMemoryTilesCache = InMemoryTilesCache(context, handler)
-        mRemoteTileLoader = RemoteAsyncTileLoader(handler)
+        mRemoteTileLoader = RemoteAsyncTileLoader(context!!, handler)
         mResizedTilesCache = ResizedTilesCache(handler)
-        mInDbTileLoader = InDbTileLoader(this)
+        mInDbTileLoader = InDbTileLoader(context, this)
         mHandler = handler
         mAllowRequestTilesViaInternet = allowRequestTilesViaInternet
     }
